@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/profile.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Profil · Ballroom</title>
+</head>
+<body>
+<div class="glow"></div>
+<header class="topbar">
+  <a href="/" class="brand"><canvas class="mini-ball" id="mini-ball" aria-hidden="true"></canvas><span class="wordmark">ballroom</span></a>
+</header>
+
+<main class="profile" id="profile">
+  <p class="profile-loading" id="loading"></p>
+</main>
+
+<!-- Édition (son propre profil) -->
+<div class="scrim hidden" id="scrim"></div>
+<div class="sheet center wide hidden" id="edit-sheet">
+  <div class="edit-scroll">
+    <h3>Profil</h3>
+    <div class="edit-photo">
+      <span class="avatar xl" id="edit-avatar"></span>
+      <div class="edit-photo-actions">
+        <label class="btn ghost small">Photo<input type="file" id="photo-input" accept="image/*" hidden></label>
+        <button class="link-btn" id="google-photo">Photo Google</button>
+      </div>
+    </div>
+
+    <label class="edit-label" for="name-input">Pseudo</label>
+    <input class="field" id="name-input" maxlength="24">
+
+    <label class="edit-label" for="bio-input">Bio <span class="count" id="bio-count"></span></label>
+    <textarea class="field" id="bio-input" maxlength="160" rows="3" placeholder="Quelques mots"></textarea>
+
+    <span class="edit-label">En boucle</span>
+    <div class="edit-albums one" id="edit-now"></div>
+
+    <label class="edit-label edit-toggle">Top 4<span class="switch"><input type="checkbox" id="top4-on"><i></i></span></label>
+    <div class="edit-albums" id="edit-top4"></div>
+
+    <span class="edit-label">Couleur</span>
+    <div class="edit-colors" id="edit-colors"></div>
+
+    <label class="edit-label edit-toggle">Notes visibles<span class="switch"><input type="checkbox" id="ratings-on"><i></i></span></label>
+
+    <span class="edit-label">Liens</span>
+    <div class="edit-links" id="edit-links"></div>
+
+    <p class="error" id="edit-error"></p>
+  </div>
+  <div class="edit-actions">
+    <button class="btn ghost small" id="edit-cancel">Annuler</button>
+    <button class="btn small" id="edit-save">Enregistrer</button>
+  </div>
+</div>
+
+<!-- Un album / EP / single -->
+<div class="sheet center wide hidden" id="release-sheet">
+  <div class="edit-scroll" id="release-body"></div>
+  <div class="edit-actions"><button class="btn small" id="release-close">OK</button></div>
+</div>
+
+<!-- Mes notes -->
+<div class="sheet center wide hidden" id="ratings-sheet">
+  <div class="edit-scroll">
+    <h3>Mes notes</h3>
+    <div id="ratings-list"></div>
+  </div>
+  <div class="edit-actions"><button class="btn small" id="ratings-close">OK</button></div>
+</div>
+
+<!-- Recherche d'album -->
+<div class="sheet center wide hidden" id="picker">
+  <h3>Album</h3>
+  <input class="field" id="picker-input" placeholder="Chercher" autocomplete="off">
+  <div class="picker-results" id="picker-results"></div>
+  <div class="edit-actions"><button class="btn ghost small" id="picker-clear">Retirer</button><button class="btn ghost small" id="picker-close">Fermer</button></div>
+</div>
+
+<script src="/js/common.js"></script>
+<script src="/js/ball.js"></script>
+<script type="module" src="/js/auth.js"></script>
+<script src="/js/account.js"></script>
+<script src="/js/profile.js"></script>
+</body>
+</html>

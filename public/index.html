@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0c">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Ballroom</title>
+</head>
+<body>
+<div class="home-account">
+  <button class="link-btn" id="home-login">Se connecter</button>
+  <a class="home-me hidden" id="home-me" href="#"><span class="avatar" id="home-avatar"></span><span id="home-name"></span></a>
+</div>
+<main class="home">
+  <div class="home-card">
+    <canvas class="hero-ball" id="ball" aria-hidden="true"></canvas>
+    <h1 class="wordmark">ballroom</h1>
+
+    <div id="join-view">
+    <form id="join-form" autocomplete="off">
+      <input class="field" id="name" placeholder="Pseudo" maxlength="24">
+      <div class="join-row">
+        <input class="field code-input" id="code" placeholder="Code" maxlength="5" inputmode="text" autocapitalize="characters" aria-label="Code de la salle">
+        <button class="btn" id="join-btn" type="submit" aria-label="Rejoindre">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </form>
+
+    <button class="link-btn" id="create-btn">ou ouvre ta salle</button>
+    </div>
+
+    <!-- Création : on règle la salle avant d'avoir le code -->
+    <div id="create-view" class="create-view hidden">
+      <div class="create-head">
+        <button class="icon-btn" id="create-back" aria-label="Retour">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <h2>Nouvelle salle</h2>
+      </div>
+      <div id="create-form"></div>
+      <button class="btn create-go" id="create-go">Ouvrir</button>
+    </div>
+    <p class="error" id="error"></p>
+  </div>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/ball.js"></script>
+<script type="module" src="/js/auth.js"></script>
+<script src="/js/account.js"></script>
+<script src="/js/settings-form.js"></script>
+<script>
+  const $ = (s) => document.querySelector(s);
+  const ball = createBall($('#ball'), { rows: 18, cols: 36, speed: 0.3 });
+
+  const nameInput = $('#name'), codeInput = $('#code'), error = $('#error');
+  nameInput.value = store.get('ballroom:name') || '';
+  const params = new URLSearchParams(location.search);
+  if (params.get('code')) codeInput.value = params.get('code').toUpperCase();
+
+  codeInput.addEventListener('input', () => {
+    codeInput.value = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  });
+
+  // Connecté : le pseudo du compte est utilisé partout, pas besoin de le retaper
+  const account = () => window.ballroomAccount && window.ballroomAccount.profile;
+  function saveName() {
+    if (account()) return account().name;
+    const n = nameInput.value.trim();
+    if (!n) { nameInput.focus(); error.textContent = 'Il te faut un pseudo.'; return null; }
+    store.set('ballroom:name', n);
+    return n;
+  }
+
+  $('#join-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!saveName()) return;
+    const code = codeInput.value.trim();
+    if (code.length !== 5) { error.textContent = 'Le code fait 5 caractères.'; codeInput.focus(); return; }
+    location.href = `/r/${code}`;
+  });
+
+  // Compte : raccourci vers son profil, et plus de champ pseudo quand on est connecté
+  window.addEventListener('ballroom:account', () => {
+    const p = account();
+    $('#home-login').classList.toggle('hidden', !!p);
+    $('#home-me').classList.toggle('hidden', !p);
+    nameInput.classList.toggle('hidden', !!p);
+    if (!p) return;
+    $('#home-me').href = p.offline ? '#' : `/u/${encodeURIComponent(p.uid)}`;
+    $('#home-name').textContent = p.name;
+    $('#home-avatar').innerHTML = p.photo ? `<img src="${esc(p.photo)}" alt="" referrerpolicy="no-referrer" onerror="this.replaceWith('${esc(initials(p.name))}')">` : esc(initials(p.name));
+  });
+  $('#home-login').addEventListener('click', () => window.ballroomAccount.signIn());
+
+  // ── Ouvrir sa salle : d'abord les réglages, ensuite le code ──
+  let form = null;
+  $('#create-btn').addEventListener('click', () => {
+    const name = saveName();
+    if (!name) return;
+    error.textContent = '';
+    let saved = {};
+    try { saved = JSON.parse(store.get('ballroom:roomSettings') || '{}'); } catch {}
+    form = settingsForm($('#create-form'), { ...saved, name: '' }, { namePlaceholder: `Salle de ${name}` });
+    $('#join-view').classList.add('hidden');
+    $('#create-view').classList.remove('hidden');
+    document.querySelector('.home').classList.add('creating');
+    ball.spin(false);
+  });
+  $('#create-back').addEventListener('click', () => {
+    $('#create-view').classList.add('hidden');
+    $('#join-view').classList.remove('hidden');
+    document.querySelector('.home').classList.remove('creating');
+    ball.spin(true);
+  });
+  $('#create-go').addEventListener('click', () => {
+    const settings = form.get();
+    if (!settings.name) settings.name = `Salle de ${saveName()}`;
+    // On garde ces réglages comme base pour la prochaine fois (sauf le nom)
+    const { name, ...rest } = settings;
+    store.set('ballroom:roomSettings', JSON.stringify(rest));
+    $('#create-go').disabled = true;
+    const socket = io();
+    socket.emit('room:create', { token: getToken(), settings }, ({ code }) => {
+      location.href = `/r/${code}?new=1`;
+    });
+  });
+</script>
+</body>
+</html>

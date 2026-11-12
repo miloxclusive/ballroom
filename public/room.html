@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0c">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>Ballroom</title>
+</head>
+<body class="room">
+<div class="glow"></div>
+
+<!-- Avant d'entrer : la salle, son album, qui est là -->
+<div class="gate" id="gate">
+  <form class="gate-card" id="gate-form" autocomplete="off">
+    <div class="gate-art" id="gate-art"><canvas class="gate-ball" id="gate-ball" aria-hidden="true"></canvas></div>
+    <h1 class="gate-name" id="gate-room"></h1>
+    <p class="gate-album" id="gate-album"></p>
+    <div class="gate-people" id="gate-people"></div>
+    <div class="gate-guest hidden" id="gate-guest">
+      <input class="field" id="gate-name" placeholder="Pseudo" maxlength="24">
+      <button class="btn" type="submit" id="gate-btn">Rejoindre</button>
+      <button class="link-btn" type="button" id="gate-google">Se connecter avec Google</button>
+    </div>
+    <p class="gate-wait" id="gate-wait"></p>
+    <p class="error" id="gate-error"></p>
+    <a class="link-btn hidden" id="gate-home" href="/">Accueil</a>
+  </form>
+</div>
+
+<header class="topbar">
+  <a href="/" class="brand" title="Accueil"><canvas class="mini-ball" id="mini-ball" aria-hidden="true"></canvas><span class="wordmark">ballroom</span></a>
+  <button class="room-title" id="room-title" type="button" disabled>
+    <span class="room-art hidden" id="room-art"></span>
+    <span class="room-text"><strong id="room-name"></strong><small id="room-sub"></small></span>
+  </button>
+  <div class="topbar-right">
+    <button class="code-pill" id="code-pill" title="Copier le lien">
+      <span id="code"></span><span class="copied" aria-live="polite"></span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg>
+    </button>
+    <button class="avatars" id="avatars" title="Personnes dans la salle"></button>
+    <button class="queue-btn" id="queue-btn" title="Masquer la file" aria-pressed="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      <span id="queue-btn-label">File</span><span class="queue-btn-count" id="queue-btn-count"></span>
+    </button>
+    <button class="icon-btn hidden" id="settings-btn" title="Réglages de la salle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+    </button>
+    <button class="me-btn" id="me-btn" title="Mon compte"><span class="avatar" id="me-avatar"></span></button>
+  </div>
+</header>
+
+<main class="stage">
+  <div class="player">
+  <p class="up-next" id="up-next"><span>Ensuite</span><b id="up-next-title"></b></p>
+  <div class="screen-wrap">
+    <div class="screen" id="screen">
+      <div class="layer" id="yt-layer"><div id="yt-player"></div></div>
+      <div class="layer hidden" id="sc-layer"></div>
+      <img class="cover hidden" id="cover" alt="">
+      <div class="shield" id="shield"></div>
+      <div class="empty" id="empty"><div><p id="empty-text"></p><div class="empty-links hidden" id="empty-links"></div></div></div>
+      <div class="tap-to-sync hidden" id="tap-sync"><span>Touche ▶ pour lancer le son</span><button class="tap-btn" id="tap-play" type="button">Lancer</button></div>
+      <div class="blocked hidden" id="blocked">
+        <strong>Lecture bloquée</strong>
+        <p id="blocked-text"></p>
+        <div class="blocked-actions">
+          <a class="btn ghost small" href="https://www.youtube.com" target="_blank" rel="noopener">Se connecter à YouTube</a>
+          <button class="btn small" id="retry-btn">Réessayer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info">
+    <div class="now">
+      <p class="now-label hidden" id="now-label"></p>
+      <h1 id="title">—</h1>
+      <p id="author"></p>
+    </div>
+
+    <!-- Pause de notation (listening party) -->
+    <div class="break-panel hidden" id="break-panel">
+      <div class="rating" id="rating">
+        <div class="stars" id="stars" role="group" aria-label="Ta note"></div>
+        <span class="rating-avg" id="rating-avg"></span>
+      </div>
+      <div class="countdown hidden" id="countdown"><div class="countdown-fill" id="countdown-fill"></div></div>
+      <p class="break-status" id="break-status"></p>
+      <div class="break-actions hidden" id="break-actions">
+        <button class="btn ghost small hidden" id="hold-btn">Pause</button>
+        <button class="btn small" id="continue-btn">Lancer la suite</button>
+      </div>
+    </div>
+
+    <!-- Récap de fin d'écoute -->
+    <div class="recap hidden" id="recap"></div>
+
+    <div class="progress" id="progress">
+      <div class="bar" id="bar">
+        <div class="track"><div class="fill" id="fill"></div></div>
+        <div class="knob" id="knob"></div>
+      </div>
+      <div class="times"><span id="t-cur">0:00</span><span id="t-dur">0:00</span></div>
+    </div>
+
+    <div class="controls hidden" id="controls">
+      <button class="icon-btn" id="prev" title="Précédent">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>
+      </button>
+      <button class="play-btn" id="play" title="Lecture / pause"></button>
+      <button class="icon-btn" id="next" title="Suivant">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg>
+      </button>
+    </div>
+    <p class="listener-hint hidden" id="listener-hint"></p>
+
+    <div class="reactions hidden" id="reactions" role="group" aria-label="Réagir">
+      <button data-e="🔥" aria-label="Feu">🔥</button><button data-e="❤️" aria-label="J'adore">❤️</button><button data-e="😮" aria-label="Choqué">😮</button><button data-e="🎧" aria-label="Casque">🎧</button>
+    </div>
+
+    <div class="join-banner">
+      <small>Écoute avec nous</small>
+      <strong id="banner-code"></strong>
+      <span id="banner-url"></span>
+    </div>
+  </div>
+  </div>
+
+  <section class="queue">
+    <div class="section-head">
+      <h2>File d'écoute <span class="q-count" id="q-count"></span></h2>
+      <span class="spacer"></span>
+      <button class="icon-btn hidden" id="clear-btn" title="Vider la file" style="width:32px;height:32px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+      </button>
+      <button class="queue-close" id="queue-close" title="Masquer la file">
+        <span>Masquer</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+    <form class="add-form hidden" id="add-form" autocomplete="off">
+      <input class="field" id="add-input" placeholder="Lien SoundCloud ou YouTube">
+      <button class="btn" type="submit" id="add-btn">Ajouter</button>
+    </form>
+    <ol id="queue"></ol>
+  </section>
+</main>
+
+<div class="floaters" id="floaters"></div>
+
+<!-- Carte "note ce titre" (titres passés, mode enchaîner) -->
+<div class="tray hidden" id="tray">
+  <button class="tray-close" id="tray-close" aria-label="Plus tard">×</button>
+  <span class="q-art" id="tray-art"></span>
+  <div class="tray-body">
+    <small>À noter</small>
+    <div class="tray-title" id="tray-title"></div>
+    <div class="stars small" id="tray-stars"></div>
+  </div>
+</div>
+
+<div class="scrim hidden" id="scrim"></div>
+<div class="sheet hidden" id="members-sheet">
+  <div id="pending"></div>
+  <h3 id="members-title">Membres</h3>
+  <div id="members"></div>
+</div>
+
+<!-- Menu perso (clic sur sa photo) -->
+<div class="sheet hidden" id="menu-sheet">
+  <div class="me-head" id="me-head"></div>
+  <button class="menu-item" id="m-sync"><div>Synchro du son<small id="m-sync-sub"></small></div></button>
+  <button class="menu-item" id="m-streamer"><div><span>Mode streamer</span></div></button>
+  <button class="menu-item" id="m-overlay"><div>Lien overlay OBS</div></button>
+  <button class="menu-item hidden" id="m-logout"><div>Se déconnecter</div></button>
+  <button class="menu-item danger" id="m-leave"><div>Quitter</div></button>
+</div>
+
+<!-- Réglages de la salle (chef) -->
+<div class="sheet wide hidden" id="settings-sheet">
+  <h3>Salle</h3>
+  <div id="settings-form"></div>
+</div>
+
+<!-- Décalage de synchro (perso) -->
+<div class="sheet hidden" id="sync-sheet">
+  <h3>Synchro du son</h3>
+  <p class="sheet-hint">Son en retard (Bluetooth) ? Avance-le.</p>
+  <div class="stepper">
+    <button class="icon-btn" id="sync-minus" aria-label="Reculer">−</button>
+    <output id="sync-value">0,00 s</output>
+    <button class="icon-btn" id="sync-plus" aria-label="Avancer">+</button>
+  </div>
+  <button class="link-btn" id="sync-reset">Remettre à zéro</button>
+</div>
+
+<!-- Lecteurs invisibles qui servent à lire le contenu des albums / playlists -->
+<div id="reader" style="position:absolute;width:1px;height:1px;left:-9999px;overflow:hidden"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/ball.js"></script>
+<script src="https://w.soundcloud.com/player/api.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="/js/players.js"></script>
+<script src="/js/settings-form.js"></script>
+<script src="/js/room.js"></script>
+<script type="module" src="/js/auth.js"></script>
+<script src="/js/account.js"></script>
+</body>
+</html>
